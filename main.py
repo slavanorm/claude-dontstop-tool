@@ -6,7 +6,9 @@ import re
 PATTERNS = [
     r'\byes\b', r'\bno\b', r'\by/n\b', r'\bconfirm\b',
     r'\bproceed\b', r'\bcontinue\b', r'\bshould i\b',
-    r'\bdo you want\b', r'\bwould you like\b', r'\bsure\b'
+    r'\bdo you want\b', r'\bwould you like\b', r'\bsure\b',
+    r'\bnext\b', r'\banother\b', r'\bmore\b',
+    r'\bready\b', r'\bapprove\b', r'\bgo ahead\b'
 ]
 
 REASON = """This appears to be a yes/no question.
