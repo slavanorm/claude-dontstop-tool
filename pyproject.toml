@@ -1,12 +1,16 @@
 [project]
-name = "claude-dontstop-tool"
-version = "0.1.0"
-description = "Hook that makes Claude decide and proceed instead of asking yes/no questions"
+name = "claude-custom-hook"
+version = "0.3.0"
+description = "Claude Code hooks: auto-deny binary questions, sounds, todo management"
 requires-python = ">=3.9"
+dependencies = ["pytest"]
 
 [project.scripts]
-claude-dontstop = "main:main"
+claude-custom-hook = "claude_hook:main"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

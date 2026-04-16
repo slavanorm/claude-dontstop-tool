@@ -1,19 +1,41 @@
-# claude-dontstop-tool
+# claude-custom-hook
 
-Claude Code hook that intercepts yes/no questions and tells Claude to decide and proceed autonomously.
+Claude Code hooks: auto-deny binary questions, sounds, and todo management.
 
-## Why
+## Features
 
-When Claude asks "Should I proceed?" or gives you 2 options - often it can infer the answer from your original intent. This hook blocks such questions and prompts Claude to recall your intent and make the reasonable choice itself.
+- **Auto-deny binary questions** — when Claude asks "Should I proceed?" or gives 2 options, hook blocks it and tells Claude to decide itself
+- **Sounds** — pop on bash, chime on done
+- **Volume** — `/volume N` (0-9, 0=mute)
+- **Todo** — manage tasks directly, no AI processing
 
-Result: less interruptions, more flow.
+## Todo commands
 
-## How it works
+| Command | Action |
+|---|---|
+| `todo buy milk` | add task |
+| `todo 3 fix auth` | add with priority 3 |
+| `todo 2` | mark #2 done |
+| `todo u2` | undo #2 |
+| `todo all` | mark all done |
+| `todo r2 new text` | reword #2 |
+| `todo vi` | export to file for editing |
+| `todo sync` | import edited file back |
+| `todo` | list tasks |
 
-1. Hooks into `AskUserQuestion` tool
-2. Detects binary questions (exactly 2 options, or contains yes/no/confirm/proceed patterns)
-3. Denies with message: "Recall user's original intent. Make the reasonable choice yourself and proceed."
-4. Claude receives denial, reconsiders, and continues working
+All todo commands are instant (hook blocks prompt, zero AI processing). Tasks are stored in `~/.claude/tasks/{session}/` and mirrored to `~/.claude/todos/` for `/todos` compatibility.
+
+### Nesting via `todo vi`
+
+```
+[ ] #1 build auth
+  [ ] #2 login page
+  [ ] #3 signup page
+    [ ] #4 email validation
+  [ ] #5 deploy
+```
+
+Indent = child of parent above. Children get `blockedBy` parent automatically.
 
 ## Setup
 
@@ -30,14 +52,43 @@ Add to `~/.claude/settings.json`:
     "PreToolUse": [
       {
         "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "claude-dontstop"
-          }
-        ]
+        "hooks": [{ "type": "command", "command": "claude-custom-hook" }]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{ "type": "command", "command": "claude-custom-hook" }]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "echo '{\"tool_name\":\"Stop\"}' | claude-custom-hook" }]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "claude-custom-hook" }]
       }
     ]
   }
 }
+```
+
+## Structure
+
+```
+claude_hook/
+  __init__.py    # routing, binary detection, main entry point
+  sound.py       # volume control, sound playback
+  todo.py        # todo parser, storage, text format, handler
+tests/
+  test_hook.py   # binary detection, routing tests
+  test_todo.py   # todo parser, storage, text roundtrip, handler tests
+```
+
+## Tests
+
+```bash
+pytest
 ```
